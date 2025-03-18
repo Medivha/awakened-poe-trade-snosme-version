@@ -16,13 +16,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
-    - run: npm ci
+    - run: yarn --frozen-lockfile
       working-directory: ./renderer
-    - run: npm run make-index-files
+    - run: yarn make-index-files
       working-directory: ./renderer
-    - run: npm run lint
+    - run: yarn lint
       working-directory: ./renderer
-    - run: npm run build
+    - run: yarn build
       working-directory: ./renderer
     - uses: actions/upload-artifact@v4
       with:
@@ -34,7 +34,8 @@ jobs:
     needs: renderer
     strategy:
       matrix:
-        os: [windows-2019, ubuntu-20.04, macos-13]
+        # os: [windows-2019, ubuntu-20.04, macos-12]
+        os: [windows-2019]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
@@ -43,11 +44,11 @@ jobs:
       with:
         name: renderer-dist
         path: ./renderer/dist
-    - run: npm ci
+    - run: yarn --frozen-lockfile
       working-directory: ./main
-    - run: npm run build
+    - run: yarn build
       working-directory: ./main
-    - run: npm run package "--" -p onTagOrDraft
+    - run: yarn package -p onTagOrDraft
       working-directory: ./main
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -60,3 +61,8 @@ jobs:
     - name: Hash
       if: ${{ startsWith(matrix.os, 'macos') }}
       run: cat ./main/dist/latest-mac.yml
+    - uses: actions/upload-artifact@v4
+      with:
+        name: main-dist-${{ matrix.os }}
+        path: ./main/dist
+        retention-days: 1
